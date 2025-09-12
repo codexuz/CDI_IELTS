@@ -1,44 +1,53 @@
 # apps/profiles/models.py
+from decimal import Decimal
 
+from django.core.validators import MinValueValidator
 from django.db import models
-from django.utils import timezone
 
-from apps.users.models import User
+from apps.users.models import User, UUIDPrimaryKeyMixin, TimeStampedMixin
 
 
-# Student Profile
-class StudentProfile(models.Model):
+# ---------- Student Profile ----------
+class StudentProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
+    TYPE_CHOICES = [("online", "Online"), ("offline", "Offline")]
+
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, primary_key=True, related_name="student_profile"
+        User, on_delete=models.CASCADE, related_name="student_profile", unique=True
     )
-    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    type = models.CharField(
-        max_length=10,
-        choices=[("online", "Online"), ("offline", "Offline")],
-        null=True,
-        blank=True,
+    balance = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
     )
     is_approved = models.BooleanField(default=False)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(auto_now=True)
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, null=True, blank=True)
 
     class Meta:
         db_table = "student_profiles"
+        indexes = [
+            # models.Index(fields=["user"]),  # keraksiz, OneToOne unique index bor
+            models.Index(fields=["is_approved"]),
+            models.Index(fields=["type"]),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(balance__gte=0),
+                name="student_profile_balance_gte_0",
+            ),
+        ]
 
-    def __str__(self):
-        return f"StudentProfile: {self.user.fullname}"
+    def save(self, *args, **kwargs):
+        self.type = "offline" if self.is_approved else "online"
+        super().save(*args, **kwargs)
 
 
-# Teacher Profile
-class TeacherProfile(models.Model):
+# ---------- Teacher Profile ----------
+class TeacherProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, primary_key=True, related_name="teacher_profile"
+        User, on_delete=models.CASCADE, related_name="teacher_profile", unique=True
     )
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "teacher_profiles"
-
-    def __str__(self):
-        return f"TeacherProfile: {self.user.fullname}"
+        # indexes = [models.Index(fields=["user"])]  # keraksiz
