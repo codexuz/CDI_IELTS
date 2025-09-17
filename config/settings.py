@@ -4,6 +4,9 @@ from datetime import timedelta
 
 import environ
 
+
+TELEGRAM_BOT_INGEST_TOKEN = os.getenv("TELEGRAM_BOT_INGEST_TOKEN")
+
 # ===================================
 # BASE SETTINGS
 # ===================================
@@ -14,7 +17,8 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # SECURITY
 SECRET_KEY = env("SECRET_KEY", default="django-insecure-secret-key")
-DEBUG = env("DEBUG")
+
+DEBUG = bool(os.getenv("DEBUG", "True") == "True")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 
 # Reverse proxy/Nginx or dockerized deployments
@@ -38,7 +42,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
-    "drf_spectacular",  # Swagger/OpenAPI
+    "drf_spectacular",
 ]
 
 LOCAL_APPS = [
@@ -167,23 +171,42 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # REST FRAMEWORK & JWT
 # ===================================
 REST_FRAMEWORK = {
+    # --- Auth / Perms
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    # --- Parsers / Renderers
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.FormParser",
+        "rest_framework.parsers.MultiPartParser",
+    ],
+    "DEFAULT_RENDERER_CLASSES": (
+        ["rest_framework.renderers.JSONRenderer"]
+        + (["rest_framework.renderers.BrowsableAPIRenderer"] if DEBUG else [])
+    ),
+    # --- Throttling (user-scoped)
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "user": "200/min",
-        "otp_ingest": "60/min",  # Bot → backend
-        "otp_verify": "20/min",  # User verify attempts
-    },  # <-- shu qavs to‘g‘ri: dict tugadi
+        "user": "200/min",  # umumiy foydalanuvchi trafiki
+        "otp_ingest": "60/min",  # Bot → Backend push
+        "otp_verify": "20/min",  # /register/verify, /login/verify
+        "otp_status": "60/min",  # Botning /otp/status so‘rovlari
+    },
+    # --- API schema (Swagger/OpenAPI)
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # --- Datetime format (Swagger va DRF chiqishi)
     "DATETIME_FORMAT": "%Y-%m-%dT%H:%M:%SZ",
-}  # <-- REST_FRAMEWORK dict shu yerda tugaydi
+    # --- Pagination (ixtiyoriy, hozircha o‘chirilgan)
+    # "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    # "PAGE_SIZE": 20,
+}
+
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
@@ -196,16 +219,14 @@ SIMPLE_JWT = {
 }
 
 
-# ===================================
-# OPENAPI / SWAGGER
-# ===================================
 SPECTACULAR_SETTINGS = {
     "TITLE": "CDI IELTS API",
     "DESCRIPTION": "IELTS Practice Platform backend (accounts/users/profiles/test flows)",
     "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,
+    "SERVE_INCLUDE_SCHEMA": True,  # <-- shu joyni True qilamiz
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+    "SERVE_AUTHENTICATION": [],
 }
-
 
 # ===================================
 # CORS (Docker + Frontend)

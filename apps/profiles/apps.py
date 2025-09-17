@@ -1,3 +1,4 @@
+# apps/profiles/apps.py
 from django.apps import AppConfig
 
 
@@ -6,4 +7,5 @@ class ProfilesConfig(AppConfig):
     name = "apps.profiles"
 
     def ready(self):
-        from . import signals
+        # ensure signals are registered
+        from . import signals  # noqa

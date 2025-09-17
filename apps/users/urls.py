@@ -12,5 +12,5 @@ def ping(_request):
 
 
 urlpatterns = [
-    path("ping/", ping),  # GET /api/users/ping/
+    path("ping/", ping, name="users-ping"),
 ]

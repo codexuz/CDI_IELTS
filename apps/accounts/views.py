@@ -1,14 +1,13 @@
-# apps/accounts/views.py
+#  apps.accounts views
+from __future__ import annotations
+
 from django.conf import settings
-from rest_framework import generics, status, throttling, permissions
+from django.utils import timezone
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from rest_framework import generics, status, throttling, permissions, serializers
 from rest_framework.response import Response
 
-from drf_spectacular.utils import (
-    extend_schema,
-    OpenApiParameter,
-    OpenApiResponse,
-)
-
+from .models import VerificationCode
 from .serializers import (
     RegisterStartSerializer,
     RegisterVerifySerializer,
@@ -20,22 +19,26 @@ from .services import issue_tokens
 
 # ============================
 # Throttles (DoS/Bruteforce)
+# settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] misol:
+#   "otp_ingest": "30/min",
+#   "otp_verify": "20/min",
+#   "otp_status": "60/min",
 # ============================
 class OTPIngestThrottle(throttling.UserRateThrottle):
-    scope = (
-        "otp_ingest"  # settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["otp_ingest"]
-    )
+    scope = "otp_ingest"
 
 
 class OTPVerifyThrottle(throttling.UserRateThrottle):
     scope = "otp_verify"
 
 
-# ============================
-# Views
-# ============================
+class OTPStatusThrottle(throttling.UserRateThrottle):
+    scope = "otp_status"
 
 
+# ============================
+# Register start
+# ============================
 @extend_schema(
     tags=["accounts"],
     summary="Register start",
@@ -43,13 +46,12 @@ class OTPVerifyThrottle(throttling.UserRateThrottle):
         "Foydalanuvchini yaratadi (users). Role bo‘yicha profil signal orqali **auto** yaratiladi:\n"
         "- student → StudentProfile(balance=0, is_approved=False → type=online)\n"
         "- teacher → TeacherProfile\n\n"
-        "Keyingi bosqich: Telegram botdan 6 xonali kod olib `/api/accounts/register/verify/` da tekshirish."
+        "Keyingi bosqich: Telegram botdan kod olib `/api/accounts/register/verify/` da tekshirish."
     ),
     request=RegisterStartSerializer,
     responses={
         201: OpenApiResponse(
-            response=dict,
-            description='{"message": "...", "user_id": "<uuid>"}',
+            response=dict, description='{"message": "...", "user_id": "<uuid>"}'
         ),
         400: OpenApiResponse(description="Validation error"),
     },
@@ -72,12 +74,15 @@ class RegisterStartView(generics.CreateAPIView):
         )
 
 
+# ============================
+# Register verify
+# ============================
 @extend_schema(
     tags=["accounts"],
     summary="Register verify (Telegram OTP)",
     description=(
         "Bot yuborgan **register** purpose’dagi kodni tekshiradi.\n"
-        "Muvaffaqiyatli bo‘lsa, `user.telegram_id` ni **bind** qiladi va JWT qaytaradi."
+        "Muvaffaqiyatli bo‘lsa, `user.telegram_id`/`telegram_username` ni bind qiladi va JWT qaytaradi."
     ),
     request=RegisterVerifySerializer,
     responses={
@@ -99,18 +104,17 @@ class RegisterVerifyView(generics.CreateAPIView):
         user = ser.save()
         tokens = issue_tokens(user)
         return Response(
-            {"message": "Registration completed.", **tokens},
-            status=status.HTTP_200_OK,
+            {"message": "Registration completed.", **tokens}, status=status.HTTP_200_OK
         )
 
 
+# ============================
+# Login verify
+# ============================
 @extend_schema(
     tags=["accounts"],
     summary="Login verify (Telegram OTP)",
-    description=(
-        "Faqat Telegram OTP orqali login.\n"
-        "Body’da `code` va **`telegram_id` yoki `telegram_username`** bo‘lishi shart."
-    ),
+    description="Faqat Telegram OTP orqali login (body’da `code` va **`telegram_id`** bo‘lishi shart).",
     request=LoginVerifySerializer,
     responses={
         200: OpenApiResponse(
@@ -131,16 +135,18 @@ class LoginVerifyView(generics.CreateAPIView):
         user = ser.save()
         tokens = issue_tokens(user)
         return Response(
-            {"message": "Login success.", **tokens},
-            status=status.HTTP_200_OK,
+            {"message": "Login success.", **tokens}, status=status.HTTP_200_OK
         )
 
 
+# ============================
+# OTP ingest (Bot → Backend)
+# ============================
 @extend_schema(
     tags=["accounts"],
     summary="OTP ingest (Bot → Backend)",
     description=(
-        "Telegram bot shu endpointga kodni push qiladi. 2 daqiqa amal qiladi (bot siyosati).\n"
+        "Telegram bot shu endpointga kodni push qiladi. Kod 2 daqiqa amal qiladi.\n"
         "**Xavfsizlik**: `X-Bot-Token` header’da shared-secret bo‘lishi shart."
     ),
     request=OtpIngestSerializer,
@@ -155,10 +161,10 @@ class LoginVerifyView(generics.CreateAPIView):
     ],
     responses={
         201: OpenApiResponse(
-            response=dict,
-            description='{"status":"stored","expires_at":"2025-09-12T15:44:00Z"}',
+            response=dict, description='{"status":"stored","expires_at":"..."}'
         ),
-        401: OpenApiResponse(description="Unauthorized (X-Bot-Token mos emas)"),
+        409: OpenApiResponse(description="Active code exists"),
+        401: OpenApiResponse(description="Unauthorized"),
         400: OpenApiResponse(description="Validation error"),
     },
 )
@@ -176,9 +182,109 @@ class OtpIngestView(generics.CreateAPIView):
             )
 
         ser = self.get_serializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        vc = ser.save()
+        try:
+            ser.is_valid(raise_exception=True)
+            vc = ser.save()
+        except serializers.ValidationError as e:
+            # serializer 'conflict' code tashlagan holatda 409 qaytaramiz
+            if getattr(e, "code", None) == "conflict" or (
+                isinstance(e.detail, dict)
+                and e.detail.get("detail") == "Active code exists"
+            ):
+                data = (
+                    e.detail
+                    if isinstance(e.detail, dict)
+                    else {"detail": "Active code exists"}
+                )
+                return Response(data, status=status.HTTP_409_CONFLICT)
+            raise
+
         return Response(
             {"status": "stored", "expires_at": vc.expires_at},
             status=status.HTTP_201_CREATED,
+        )
+
+
+# ============================
+# OTP status (Bot → Backend)
+# ============================
+@extend_schema(
+    tags=["accounts"],
+    summary="OTP status (Bot → Backend)",
+    description="Bot uchun: berilgan telegram_id/username + purpose bo‘yicha aktiv OTP bor-yo‘qligini tekshiradi.",
+    parameters=[
+        OpenApiParameter(
+            name="X-Bot-Token",
+            type=str,
+            location=OpenApiParameter.HEADER,
+            required=True,
+            description="Shared secret (settings.TELEGRAM_BOT_INGEST_TOKEN)",
+        ),
+        OpenApiParameter(
+            name="telegram_id",
+            type=int,
+            location=OpenApiParameter.QUERY,
+            required=False,
+        ),
+        OpenApiParameter(
+            name="telegram_username",
+            type=str,
+            location=OpenApiParameter.QUERY,
+            required=False,
+        ),
+        OpenApiParameter(
+            name="purpose",
+            type=str,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="register | login",
+        ),
+    ],
+    responses={
+        200: OpenApiResponse(
+            response=dict,
+            description='{"active":true,"expires_at":"...","ttl_seconds":73} yoki {"active":false}',
+        ),
+        401: OpenApiResponse(description="Unauthorized"),
+        400: OpenApiResponse(description="Validation error"),
+    },
+)
+class OtpStatusView(generics.GenericAPIView):
+    """
+    Bot va frontend uchun: aktiv OTP bor-yo‘qligini ko‘rsatadi.
+    """
+
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [OTPStatusThrottle]
+
+    def get(self, request, *args, **kwargs):
+        telegram_id = request.query_params.get("telegram_id")
+        telegram_username = request.query_params.get("telegram_username")
+        purpose = request.query_params.get("purpose")
+
+        if not purpose:
+            return Response(
+                {"detail": "purpose is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        vc = VerificationCode.objects.latest_alive_for(
+            telegram_id=telegram_id,
+            telegram_username=telegram_username,
+            purpose=purpose,
+        )
+
+        if not vc:
+            return Response(
+                {"active": False, "remaining_seconds": 0},
+                status=status.HTTP_200_OK,
+            )
+
+        remaining = int((vc.expires_at - timezone.now()).total_seconds())
+        return Response(
+            {
+                "active": True,
+                "remaining_seconds": max(remaining, 0),
+            },
+            status=status.HTTP_200_OK,
         )

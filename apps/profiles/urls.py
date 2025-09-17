@@ -21,6 +21,7 @@ def me(request):
         "student_profile": None,
         "teacher_profile": None,
     }
+
     sp = getattr(u, "student_profile", None)
     if sp:
         data["student_profile"] = {
@@ -31,12 +32,10 @@ def me(request):
         }
     tp = getattr(u, "teacher_profile", None)
     if tp:
-        data["teacher_profile"] = {
-            "created_at": tp.created_at,
-        }
+        data["teacher_profile"] = {"created_at": tp.created_at}
     return Response(data)
 
 
 urlpatterns = [
-    path("me/", me),  # GET /api/profiles/me/  (JWT kerak)
+    path("me/", me, name="profiles-me"),
 ]

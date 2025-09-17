@@ -13,6 +13,14 @@ services:
       - db
     env_file:
       - .env
+    restart: unless-stopped
+    healthcheck:
+      # DRF ping: GET /api/users/ping/ → {"status":"ok","app":"users"}
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/api/users/ping >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   db:
     image: postgres:15
@@ -26,6 +34,25 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
+  bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    container_name: Bot
+    restart: unless-stopped
+    env_file:
+      - bot/.env
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      # DRF ping: GET /api/users/ping/ → {"status":"ok","app":"users"}
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/api/users/ping/ >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
 volumes:
   postgres_data:
