@@ -4,7 +4,6 @@ from datetime import timedelta
 
 import environ
 
-
 TELEGRAM_BOT_INGEST_TOKEN = os.getenv("TELEGRAM_BOT_INGEST_TOKEN")
 
 # ===================================
@@ -25,11 +24,11 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-
 # ===================================
 # APPLICATIONS
 # ===================================
 DJANGO_APPS = [
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -59,7 +58,6 @@ LOCAL_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-
 # ===================================
 # MIDDLEWARE
 # ===================================
@@ -74,13 +72,11 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-
 # ===================================
 # URLS & WSGI
 # ===================================
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
-
 
 # ===================================
 # DATABASE (Docker)
@@ -93,20 +89,13 @@ DATABASES = {
         "PASSWORD": env("POSTGRES_PASSWORD"),
         "HOST": env("POSTGRES_HOST", default="db"),  # docker-compose service name
         "PORT": env("POSTGRES_PORT", default="5432"),
-        "CONN_MAX_AGE": 60,
-        "OPTIONS": {
-            # Uncomment if you want statement timeouts, etc.
-            # "options": "-c statement_timeout=5000",
-        },
     }
 }
-
 
 # ===================================
 # AUTH USER MODEL
 # ===================================
 AUTH_USER_MODEL = "users.User"
-
 
 # ===================================
 # TEMPLATES
@@ -127,7 +116,6 @@ TEMPLATES = [
     },
 ]
 
-
 # ===================================
 # PASSWORD VALIDATION
 # ===================================
@@ -140,7 +128,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-
 # ===================================
 # INTERNATIONALIZATION
 # ===================================
@@ -148,7 +135,6 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = env("TIME_ZONE", default="UTC")
 USE_I18N = True
 USE_TZ = True
-
 
 # ===================================
 # STATIC & MEDIA
@@ -160,12 +146,10 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-
 # ===================================
 # DEFAULTS
 # ===================================
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 
 # ===================================
 # REST FRAMEWORK & JWT
@@ -207,7 +191,6 @@ REST_FRAMEWORK = {
     # "PAGE_SIZE": 20,
 }
 
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
@@ -217,7 +200,6 @@ SIMPLE_JWT = {
     "SIGNING_KEY": SECRET_KEY,
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
-
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "CDI IELTS API",
@@ -236,12 +218,10 @@ CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
-
 # ===================================
 # TELEGRAM BOT & SECURITY
 # ===================================
 TELEGRAM_BOT_INGEST_TOKEN = env("TELEGRAM_BOT_INGEST_TOKEN", default="super-secret")
-
 
 # ===================================
 # LOGGING (useful in Docker)

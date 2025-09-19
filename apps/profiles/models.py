@@ -1,6 +1,8 @@
 # apps/profiles/models.py
 from decimal import Decimal
 
+from django.conf import settings
+
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
@@ -72,3 +74,63 @@ class TeacherProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
 
     def __str__(self) -> str:
         return f"TeacherProfile<{self.user_id}>"
+
+
+class StudentApprovalLog(UUIDPrimaryKeyMixin, TimeStampedMixin):
+    """
+    Student approve/disapprove audit log.
+    """
+
+    student = models.ForeignKey(
+        StudentProfile, on_delete=models.CASCADE, related_name="approval_logs"
+    )
+    approved = models.BooleanField()
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="student_approval_actions",
+    )
+    note = models.CharField(max_length=255, blank=True, default="")
+
+    class Meta:
+        db_table = "student_approval_logs"
+        indexes = [
+            models.Index(fields=["created_at"], name="studapprlog_created_idx"),
+            models.Index(fields=["approved"], name="studapprlog_approved_idx"),
+        ]
+
+    def __str__(self) -> str:
+        who = self.actor.fullname if self.actor else "system"
+        return f"ApprovalLog<{self.student_id}> approved={self.approved} by {who}"
+
+
+class StudentTopUpLog(UUIDPrimaryKeyMixin, TimeStampedMixin):
+    """
+    Student balance top-up audit log.
+    """
+
+    student = models.ForeignKey(
+        StudentProfile, on_delete=models.CASCADE, related_name="topup_logs"
+    )
+    amount = models.DecimalField(
+        max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))]
+    )
+    new_balance = models.DecimalField(max_digits=12, decimal_places=2)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="student_topup_actions",
+    )
+    note = models.CharField(max_length=255, blank=True, default="")
+
+    class Meta:
+        db_table = "student_topup_logs"
+        indexes = [
+            models.Index(fields=["created_at"], name="studtopuplog_created_idx"),
+        ]
+
+    def __str__(self) -> str:
+        who = self.actor.fullname if self.actor else "system"
+        return f"TopUpLog<{self.student_id}> +{self.amount} by {who}, new={self.new_balance}"

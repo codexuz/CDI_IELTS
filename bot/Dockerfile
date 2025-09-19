@@ -11,14 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # install deps
-COPY bot/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # copy app
-COPY bot /app
-
-# non-root (good practice)
-RUN useradd -ms /bin/bash botuser
-USER botuser
+COPY . .
 
 CMD ["bash", "entrypoint.sh"]

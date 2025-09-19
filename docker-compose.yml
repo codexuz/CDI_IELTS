@@ -1,31 +1,20 @@
-version: "3.9"
-
 services:
   web:
     build: .
-    container_name: Backend
-    command: sh runner.sh
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_started
     env_file:
       - .env
-    restart: unless-stopped
-    healthcheck:
-      # DRF ping: GET /api/users/ping/ → {"status":"ok","app":"users"}
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/api/users/ping >/dev/null || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
+    restart: on-failure
 
   db:
     image: postgres:15
-    container_name: database
-    restart: always
+    restart: on-failure
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -37,22 +26,14 @@ services:
 
   bot:
     build:
-      context: .
-      dockerfile: bot/Dockerfile
-    container_name: Bot
+      context: ./bot
+      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
-      - bot/.env
+      - ./bot/.env
     depends_on:
       web:
-        condition: service_healthy
-    healthcheck:
-      # DRF ping: GET /api/users/ping/ → {"status":"ok","app":"users"}
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/api/users/ping/ >/dev/null || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
+        condition: service_started
 
 volumes:
   postgres_data:

@@ -1,16 +1,14 @@
-# apps/users/urls.py
-from django.urls import path
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
+#  apps/users/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
+from .views import ping, MeView, UserAdminViewSet
 
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def ping(_request):
-    return Response({"status": "ok", "app": "users"})
-
+router = DefaultRouter()
+router.register(r"admin/users", UserAdminViewSet, basename="admin-users")
 
 urlpatterns = [
     path("ping/", ping, name="users-ping"),
+    path("me/", MeView.as_view(), name="users-me"),
+    path("", include(router.urls)),
 ]

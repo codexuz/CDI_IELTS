@@ -5,8 +5,9 @@
       <excludeFolder url="file://$MODULE_DIR$/venv/bin" />
       <excludeFolder url="file://$MODULE_DIR$/venv/include" />
       <excludeFolder url="file://$MODULE_DIR$/venv/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.13 virtualenv at ~/Developer/CDI_IELTS/venv" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.13 (CDI_IELTS)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
