@@ -1,4 +1,6 @@
 #  apps/tests/models/ielts.py
+from decimal import Decimal
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -19,7 +21,12 @@ class Test(models.Model):
     reading = models.ForeignKey(
         Reading, on_delete=models.CASCADE, null=True, blank=True
     )
-    price = models.DecimalField(max_digits=12, decimal_places=2)
+    price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=False,
+        db_default=Decimal("0.00"),
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

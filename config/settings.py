@@ -223,6 +223,31 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 # ===================================
 TELEGRAM_BOT_INGEST_TOKEN = env("TELEGRAM_BOT_INGEST_TOKEN", default="super-secret")
 
+
+# click.uz to‘lov tizimi sozlamalari
+CLICK = {
+    "MERCHANT_ID": int(env("CLICK_MERCHANT_ID")),
+    "SECRET_KEY": env("CLICK_SECRET_KEY"),
+    "RETURN_URL": env("CLICK_RETURN_URL"),
+    "CANCEL_URL": env("CLICK_CANCEL_URL"),
+    "BASE_URL": env("CLICK_BASE_URL"),
+    "MERCHANT_USER_ID": env.int("CLICK_MERCHANT_USER_ID", default=0),
+    # IP whitelist (Click production IP’lari – ro‘yxatini Click hujjatidan qo‘ying)
+    "ALLOWED_IPS": ["91.204.239.44", "91.204.239.45"],
+}
+
+PAYMENTS = {
+    "MIN_TOPUP": 1000,  # 1 000 UZS
+    "MAX_TOPUP": 5_000_000,  # 5 mln UZS
+}
+
+
+SPEAKING = {
+    "FEE": 50000,
+}
+TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
+TELEGRAM_ADMIN_CHAT_ID = env("TELEGRAM_ADMIN_CHAT_ID", default="")
+
 # ===================================
 # LOGGING (useful in Docker)
 # ===================================

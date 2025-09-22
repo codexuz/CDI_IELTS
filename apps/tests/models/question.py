@@ -58,8 +58,12 @@ class Question(models.Model):
     table = JSONField(
         default=dict, help_text=_("Table of question data."), null=True, blank=True
     )
-    answer_dict = JSONField(default=dict, help_text=_("Answer key data."), null=True, blank=True)
-    answer_list = JSONField(default=list, help_text=_("Answer key data."), null=True, blank=True)
+    answer_dict = JSONField(
+        default=dict, help_text=_("Answer key data."), null=True, blank=True
+    )
+    answer_list = JSONField(
+        default=list, help_text=_("Answer key data."), null=True, blank=True
+    )
 
     class Meta:
         verbose_name = _("Question")

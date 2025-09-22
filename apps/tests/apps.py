@@ -1,3 +1,4 @@
+#  apps/tests/apps.py
 from django.apps import AppConfig
 
 
