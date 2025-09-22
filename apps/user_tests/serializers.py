@@ -6,11 +6,6 @@ from .models import UserTest, TestResult
 
 
 class TestListItemSerializer(serializers.ModelSerializer):
-    """
-    All tests uchun element.
-    purchased -> annotate(Exists(UserTest)) dan keladi (read_only)
-    price -> Test modelida yo'q bo'lsa 0 qaytaramiz (moslashuvchan).
-    """
 
     purchased = serializers.BooleanField(read_only=True)
     price = serializers.SerializerMethodField()
@@ -24,7 +19,6 @@ class TestListItemSerializer(serializers.ModelSerializer):
 
 
 class TestSerializer(serializers.ModelSerializer):
-    """Ichki joylarda Test’ni minimal ko‘rinishda ko‘rsatish uchun."""
 
     class Meta:
         model = Test
@@ -32,9 +26,7 @@ class TestSerializer(serializers.ModelSerializer):
 
 
 class UserTestSerializer(serializers.ModelSerializer):
-    """
-    My tests (UserTest) uchun serializer.
-    """
+
 
     test = TestSerializer(read_only=True)
 
@@ -52,9 +44,6 @@ class UserTestSerializer(serializers.ModelSerializer):
 
 
 class TestResultSerializer(serializers.ModelSerializer):
-    """
-    Result reviews (TestResult) uchun serializer.
-    """
 
     user_test = UserTestSerializer(read_only=True)
 

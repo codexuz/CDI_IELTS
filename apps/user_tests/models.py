@@ -131,6 +131,6 @@ class TestResult(models.Model):
 class AllTestsProxy(RealTest):
     class Meta:
         proxy = True
-        app_label = "user_tests"  # admin’da user_tests ostida ko‘rinadi
+        app_label = "user_tests"
         verbose_name = "All test"
         verbose_name_plural = "All tests"

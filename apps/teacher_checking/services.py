@@ -1,3 +1,4 @@
+#  apps/teacher_checking/services.py
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
@@ -9,9 +10,7 @@ from .models import TeacherSubmission
 
 @transaction.atomic
 def submit_writing(*, user_test: UserTest, task: str, text: str) -> TeacherSubmission:
-    """
-    Student yozuv yuboradi -> requested holat yaratiladi (yoki yangilanadi agar hali checked bo'lmagan bo'lsa).
-    """
+
     sub, created = TeacherSubmission.objects.get_or_create(
         user_test=user_test,
         task=task,
@@ -56,9 +55,7 @@ def claim_submission(*, submission_id, teacher: User) -> TeacherSubmission:
 def grade_submission(
     *, submission_id, teacher: User, score: float, feedback: str
 ) -> TeacherSubmission:
-    """
-    Teacher baholaydi -> checked bo'ladi va TestResult.writing_score yangilanadi (avg of available tasks).
-    """
+
     sub = (
         TeacherSubmission.objects.select_for_update()
         .select_related("user_test")
@@ -76,20 +73,16 @@ def grade_submission(
     sub.teacher = teacher
     sub.save()
 
-    # Update TestResult.writing_score & overall
     ut = sub.user_test
     tr, _ = TestResult.objects.get_or_create(user_test=ut)
 
-    # o'sha user_test bo'yicha Task1/Task2 dan available score'larni yig'amiz
     scores = list(
         TeacherSubmission.objects.filter(
             user_test=ut, status=TeacherSubmission.Status.CHECKED
         ).values_list("score", flat=True)
     )
     if scores:
-        # NOTE: IELTSda Task2 ko‘proq og‘irlikka ega, hozircha oddiy o‘rtacha (TODO: weight if needed)
         tr.writing_score = round(sum(scores) / len(scores), 1)
-        # overall ni hisoblash: L/R/W mavjudlarini o‘rtacha
         comps = [
             x
             for x in [tr.listening_score, tr.reading_score, tr.writing_score]

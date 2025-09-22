@@ -11,7 +11,6 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
 from .models import User
 
-# --- ixtiyoriy inlines: profiles mavjud bo'lsa ko'rsatamiz
 StudentInline = None
 TeacherInline = None
 try:
@@ -32,13 +31,9 @@ try:
         readonly_fields = ("created_at", "updated_at")
 
 except Exception:
-    # profiles app yo'q bo'lsa, inlines ishlatilmaydi
     pass
 
 
-# ============================
-# Custom Forms (create/change)
-# ============================
 _phone_re = re.compile(r"^\+?[1-9]\d{7,14}$")
 _tg_username_re = re.compile(r"^[A-Za-z0-9_]{5,32}$")
 
@@ -159,7 +154,6 @@ class UserAdmin(DjangoUserAdmin):
     form = UserChangeForm
     model = User
 
-    # ro'yxatda ustunlar
     list_display = (
         "fullname",
         "phone_number",
@@ -176,10 +170,8 @@ class UserAdmin(DjangoUserAdmin):
     search_fields = ("fullname", "phone_number", "telegram_username", "telegram_id")
     ordering = ("-created_at",)
 
-    # readonly maydonlar
     readonly_fields = ("created_at", "updated_at", "last_activity")
 
-    # form fieldsetlari (change view)
     fieldsets = (
         ("Identity", {"fields": ("fullname", "phone_number", "role")}),
         (
@@ -205,7 +197,6 @@ class UserAdmin(DjangoUserAdmin):
         ("Password", {"fields": ("password",)}),
     )
 
-    # add form fieldsetlari (create view)
     add_fieldsets = (
         (
             None,
@@ -225,13 +216,11 @@ class UserAdmin(DjangoUserAdmin):
         ),
     )
 
-    # inline’lar (agar mavjud bo'lsa)
     if StudentInline:
         inlines = [StudentInline]
         if TeacherInline:
             inlines.append(TeacherInline)
 
-    # tezkor actions (ixtiyoriy)
     @admin.action(description="Mark as active")
     def make_active(self, request, queryset):
         updated = queryset.update(is_active=True)

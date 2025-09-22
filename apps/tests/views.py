@@ -15,7 +15,6 @@ from apps.tests.serializers import (
     QuestionSetDetailSerializer,
 )
 
-# Performance-friendly prefetch trees
 LISTENING_PREFETCH = Prefetch(
     "listening__sections",
     queryset=ListeningSection.objects.all()
@@ -49,11 +48,6 @@ READING_PREFETCH = Prefetch(
 class TestViewSet(
     mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
 ):
-    """
-    Read-only ViewSet:
-    - list: eng yengil serializer (TestListSerializer)
-    - retrieve: to'liq nested detallari bilan (TestDetailSerializer)
-    """
 
     permission_classes = [permissions.AllowAny]
     filter_backends = [filters.OrderingFilter]
@@ -61,7 +55,7 @@ class TestViewSet(
     ordering = ["-created_at"]
 
     def get_queryset(self):
-        # List uchun yengil prefetch; retrieve uchun to'liq
+
         qs = (
             Test.objects.all()
             .select_related("writing__task_one", "writing__task_two")
@@ -91,7 +85,6 @@ class QuestionSetViewSet(
         base = QuestionSet.objects.all()
         if self.action == "list":
             return base.annotate(questions_count=Count("questions")).only("id", "name")
-        # retrieve: to'liq savollar bilan
         return base.prefetch_related("questions")
 
     def get_serializer_class(self):

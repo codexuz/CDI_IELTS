@@ -16,7 +16,6 @@ class SpeakingRequest(UUIDPrimaryKeyMixin, TimeStampedMixin):
         max_length=20, choices=STATUS_CHOICES, default=STATUS_CREATED, db_index=True
     )
 
-    # Audit
     fee_amount = models.DecimalField(max_digits=12, decimal_places=2)
     currency = models.CharField(max_length=3, default="UZS")
     note = models.CharField(max_length=255, blank=True, default="")

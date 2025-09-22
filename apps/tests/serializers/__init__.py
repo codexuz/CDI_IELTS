@@ -7,7 +7,6 @@ from apps.tests.models.writing import Writing, TaskOne, TaskTwo
 from apps.tests.models.question import Question, QuestionSet
 
 
-# ---------- Question / QuestionSet ----------
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -40,8 +39,6 @@ class QuestionSetDetailSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "questions"]
 
 
-# ---------- Listening ----------
-
 
 class ListeningSectionSummarySerializer(serializers.ModelSerializer):
     question_set_ids = serializers.PrimaryKeyRelatedField(
@@ -61,8 +58,6 @@ class ListeningDetailSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "sections"]
 
 
-# ---------- Reading ----------
-
 
 class ReadingPassageSummarySerializer(serializers.ModelSerializer):
     question_set_ids = serializers.PrimaryKeyRelatedField(
@@ -81,8 +76,6 @@ class ReadingDetailSerializer(serializers.ModelSerializer):
         model = Reading
         fields = ["id", "title", "passages"]
 
-
-# ---------- Writing ----------
 
 
 class TaskOneSerializer(serializers.ModelSerializer):
@@ -105,8 +98,6 @@ class WritingDetailSerializer(serializers.ModelSerializer):
         model = Writing
         fields = ["id", "task_one", "task_two"]
 
-
-# ---------- Test (IELTS) ----------
 
 
 class TestListSerializer(serializers.ModelSerializer):

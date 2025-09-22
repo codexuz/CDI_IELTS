@@ -1,3 +1,4 @@
+#  apps/teacher_checking/views.py
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -16,7 +17,6 @@ from .serializers import (
 from .services import submit_writing, claim_submission, grade_submission
 
 
-# ---------- Student submits writing ----------
 @extend_schema(
     tags=["Teacher Checking"], summary="Student submit writing (Task1/Task2)"
 )
@@ -36,7 +36,6 @@ def student_submit_writing(request):
     )
 
 
-# ---------- Teacher queues ----------
 @extend_schema(tags=["Teacher Checking"], summary="All Writing (pool) — requested")
 class AllWritingList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated, IsTeacherOrSuperAdmin]
@@ -80,7 +79,6 @@ class MyCheckedList(generics.ListAPIView):
         )
 
 
-# ---------- Teacher actions ----------
 @extend_schema(tags=["Teacher Checking"], summary="Claim one submission (safe lock)")
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated, IsTeacherOrSuperAdmin])

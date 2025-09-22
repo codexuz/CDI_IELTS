@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 from datetime import timedelta
+
 from django.contrib import admin, messages
-from django.utils.timezone import now, localtime
 from django.db import transaction
+from django.utils.timezone import now, localtime
 
 from .models import VerificationCode
 
@@ -62,7 +63,6 @@ class VerificationCodeAdmin(admin.ModelAdmin):
             )
         )
 
-    # ---------- Ko‘rinish yordamchilari ----------
     @admin.display(description="Telegram")
     def tg_identity(self, obj: VerificationCode) -> str:
         if obj.telegram_id and obj.telegram_username:
@@ -88,7 +88,6 @@ class VerificationCodeAdmin(admin.ModelAdmin):
     def expires_local(self, obj: VerificationCode) -> str:
         return localtime(obj.expires_at).strftime("%Y-%m-%d %H:%M:%S")
 
-    # ---------- Actions ----------
     @admin.action(description="Mark selected as consumed")
     def mark_as_consumed(self, request, queryset):
         with transaction.atomic():

@@ -15,9 +15,6 @@ from .models import (
 )
 
 
-# ----------------------------
-# Inlines (audit logs, read-only)
-# ----------------------------
 class StudentApprovalLogInline(admin.TabularInline):
     model = StudentApprovalLog
     extra = 0
@@ -44,9 +41,6 @@ class StudentTopUpLogInline(admin.TabularInline):
         return False
 
 
-# ----------------------------
-# StudentProfile Admin
-# ----------------------------
 @admin.register(StudentProfile)
 class StudentProfileAdmin(admin.ModelAdmin):
     inlines = [StudentApprovalLogInline, StudentTopUpLogInline]
@@ -82,7 +76,6 @@ class StudentProfileAdmin(admin.ModelAdmin):
     )
 
     def get_queryset(self, request):
-        # Optimizatsiya: user bilan birga olib kelamiz va kerakli ustunlargina
         return (
             super()
             .get_queryset(request)
@@ -116,7 +109,6 @@ class StudentProfileAdmin(admin.ModelAdmin):
     def created_local(self, obj: StudentProfile) -> str:
         return localtime(obj.created_at).strftime("%Y-%m-%d %H:%M")
 
-    # --------- Actions (approve/disapprove + quick topups) ---------
     @admin.action(description="Approve selected students")
     def approve_selected(self, request, queryset):
         updated = 0
@@ -188,9 +180,6 @@ class StudentProfileAdmin(admin.ModelAdmin):
     actions = ("approve_selected", "disapprove_selected", "topup_50k", "topup_100k")
 
 
-# ----------------------------
-# TeacherProfile Admin (read-only)
-# ----------------------------
 @admin.register(TeacherProfile)
 class TeacherProfileAdmin(admin.ModelAdmin):
     list_display = ("id", "user_fullname", "user_phone", "created_local")
@@ -232,9 +221,6 @@ class TeacherProfileAdmin(admin.ModelAdmin):
         return localtime(obj.created_at).strftime("%Y-%m-%d %H:%M")
 
 
-# ----------------------------
-# Audit Log Admins (read-only)
-# ----------------------------
 @admin.register(StudentApprovalLog)
 class StudentApprovalLogAdmin(admin.ModelAdmin):
     list_display = (

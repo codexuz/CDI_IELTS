@@ -10,9 +10,6 @@ from django.db.models import Q
 from django.utils import timezone
 
 
-# ============================
-# QuerySet & Manager
-# ============================
 class VerificationCodeQuerySet(models.QuerySet):
     def alive(self) -> "VerificationCodeQuerySet":
         now = timezone.now()
@@ -63,9 +60,7 @@ class VerificationCodeManager(models.Manager.from_queryset(VerificationCodeQuery
         purpose: str,
         ttl_minutes: int = 2,
     ) -> "VerificationCode":
-        """
-        Yangi OTP yozuvi yaratadi (audit uchun eski yozuvlar qoldiriladi).
-        """
+
         expires = timezone.now() + timedelta(minutes=ttl_minutes)
         return self.create(
             telegram_id=telegram_id,
@@ -89,9 +84,6 @@ class VerificationCodeManager(models.Manager.from_queryset(VerificationCodeQuery
         )
 
 
-# ============================
-# Model
-# ============================
 class VerificationCode(models.Model):
     class Purpose(models.TextChoices):
         REGISTER = "register", "Register"

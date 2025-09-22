@@ -33,13 +33,7 @@ from .serializers import (
 )
 
 
-# -------------------------------------------------------------------
-# Helper’lar
-# -------------------------------------------------------------------
-
-
 def _qp_int(qp, key: str, default: int = 0) -> int:
-    """Query paramni xavfsiz int ga aylantiradi."""
     try:
         return int(qp.get(key, default))
     except (TypeError, ValueError):
@@ -47,10 +41,7 @@ def _qp_int(qp, key: str, default: int = 0) -> int:
 
 
 def _sub_to_item(s: TeacherSubmission) -> Dict[str, Any]:
-    """
-    TeacherSubmission -> dict (dashboard uchun)
-    .user_test_id FK maydoni ORM tomonidan har doim mavjud (extra query yo'q).
-    """
+
     ut = s.user_test  # select_related bilan oldindan join qilingan
     return {
         "id": s.id,
@@ -63,11 +54,6 @@ def _sub_to_item(s: TeacherSubmission) -> Dict[str, Any]:
         "submitted_at": s.submitted_at,
         "checked_at": s.checked_at,
     }
-
-
-# -------------------------------------------------------------------
-# Me / Logs
-# -------------------------------------------------------------------
 
 
 @extend_schema(tags=["Profiles"], summary="Student profil (meniki)")
@@ -135,9 +121,6 @@ class StudentApprovalLogListView(generics.ListAPIView):
         )
 
 
-# -------------------------------------------------------------------
-# Student Dashboard: profile + all_tests + my_tests + results
-# -------------------------------------------------------------------
 
 
 @extend_schema(
@@ -168,14 +151,7 @@ class StudentApprovalLogListView(generics.ListAPIView):
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated, IsStudent])
 def student_dashboard(request):
-    """
-    Bitta responseda:
-      - profile: StudentProfile
-      - sections:
-          all_tests: Test ro‘yxati (purchased flag bilan)
-          my_tests: UserTest ro‘yxati
-          results: TestResult ro‘yxati
-    """
+
     user = request.user
     sp = get_object_or_404(
         StudentProfile.objects.select_related("user"),
@@ -186,7 +162,6 @@ def student_dashboard(request):
     my_limit = _qp_int(request.query_params, "my_limit")
     res_limit = _qp_int(request.query_params, "res_limit")
 
-    # All Tests (purchased flag bilan)
     purchased_qs = UserTest.objects.filter(user=user, test=OuterRef("pk"))
     all_qs = (
         Test.objects.all()
@@ -207,7 +182,6 @@ def student_dashboard(request):
     ]
     all_tests_data = AllTestItemSerializer(all_tests, many=True).data
 
-    # My Tests
     my_qs = (
         UserTest.objects.filter(user=user)
         .select_related("test")
@@ -234,7 +208,6 @@ def student_dashboard(request):
     ]
     my_tests_data = MyTestItemSerializer(my_tests, many=True).data
 
-    # Results
     res_qs = (
         TestResult.objects.filter(user_test__user=user)
         .select_related("user_test__test")
@@ -270,10 +243,6 @@ def student_dashboard(request):
     )
 
 
-# -------------------------------------------------------------------
-# Teacher Dashboard: profile + all_writing + my_checking + my_checked
-# -------------------------------------------------------------------
-
 
 @extend_schema(
     tags=["Profiles"],
@@ -303,12 +272,7 @@ def student_dashboard(request):
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated, IsTeacherOrSuperAdmin])
 def teacher_dashboard(request):
-    """
-    Teacher uchun:
-      - All Writing: status=requested (umumiy pool)
-      - My Checking: status=in_checking, teacher=this
-      - My Checked: status=checked, teacher=this
-    """
+
     user = request.user
     tp = get_object_or_404(
         TeacherProfile.objects.select_related("user"),
@@ -321,7 +285,6 @@ def teacher_dashboard(request):
 
     base_sel = ("user_test__user", "user_test__test", "teacher")
 
-    # All Writing (pool)
     all_qs = (
         TeacherSubmission.objects.filter(status=TeacherSubmission.Status.REQUESTED)
         .select_related(*base_sel)
@@ -331,7 +294,6 @@ def teacher_dashboard(request):
     if all_limit > 0:
         all_qs = all_qs[:all_limit]
 
-    # My Checking
     chk_qs = (
         TeacherSubmission.objects.filter(
             status=TeacherSubmission.Status.IN_CHECKING, teacher=user
@@ -343,7 +305,6 @@ def teacher_dashboard(request):
     if chk_limit > 0:
         chk_qs = chk_qs[:chk_limit]
 
-    # My Checked
     done_qs = (
         TeacherSubmission.objects.filter(
             status=TeacherSubmission.Status.CHECKED, teacher=user

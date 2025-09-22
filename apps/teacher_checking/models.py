@@ -1,10 +1,11 @@
+#  app/models/teacher_checking.py
 import uuid
+
 from django.db import models
 from django.utils import timezone
 
-from apps.users.models import User
 from apps.user_tests.models import UserTest
-from apps.tests.models.writing import Writing
+from apps.users.models import User
 
 
 class TeacherSubmission(models.Model):
@@ -48,7 +49,6 @@ class TeacherSubmission(models.Model):
     class Meta:
         db_table = "teacher_submissions"
         constraints = [
-            # har bir user_test uchun Task1/Task2 bo‘yicha bittadan yozuv
             models.UniqueConstraint(
                 fields=["user_test", "task"], name="uniq_submission_per_task"
             ),

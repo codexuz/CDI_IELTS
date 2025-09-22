@@ -7,5 +7,4 @@ class ProfilesConfig(AppConfig):
     name = "apps.profiles"
 
     def ready(self):
-        # ensure signals are registered
         from . import signals  # noqa

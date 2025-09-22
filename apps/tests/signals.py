@@ -26,7 +26,6 @@ def create_sections_for_test(sender, instance: Test, created, **kwargs):
         )
         listening.sections.add(section)
 
-    # Reading + 3 passages
     reading = Reading.objects.create(title=f"{instance.title} Reading")
     for i in range(1, 4):
         passage = ReadingPassage.objects.create(
@@ -34,11 +33,11 @@ def create_sections_for_test(sender, instance: Test, created, **kwargs):
         )
         reading.passages.add(passage)
 
-    # Writing (Task1/Task2)
+
     task_two = TaskTwo.objects.create(topic=f"{instance.title} Task Two")
     task_one = TaskOne.objects.create(
         topic=f"{instance.title} Task One",
-        image_title="",  # yoki "" bo‘lsa ham modelda blank=True bo‘lsin
+        image_title="",
         image="",
     )
     writing = Writing.objects.create(task_one=task_one, task_two=task_two)

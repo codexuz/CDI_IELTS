@@ -17,13 +17,6 @@ from .serializers import (
 from .services import issue_tokens
 
 
-# ============================
-# Throttles (DoS/Bruteforce)
-# settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] misol:
-#   "otp_ingest": "30/min",
-#   "otp_verify": "20/min",
-#   "otp_status": "60/min",
-# ============================
 class OTPIngestThrottle(throttling.UserRateThrottle):
     scope = "otp_ingest"
 
@@ -36,9 +29,6 @@ class OTPStatusThrottle(throttling.UserRateThrottle):
     scope = "otp_status"
 
 
-# ============================
-# Register start
-# ============================
 @extend_schema(
     tags=["accounts"],
     summary="Register start",
@@ -74,9 +64,6 @@ class RegisterStartView(generics.CreateAPIView):
         )
 
 
-# ============================
-# Register verify
-# ============================
 @extend_schema(
     tags=["accounts"],
     summary="Register verify (Telegram OTP)",
@@ -108,9 +95,6 @@ class RegisterVerifyView(generics.CreateAPIView):
         )
 
 
-# ============================
-# Login verify
-# ============================
 @extend_schema(
     tags=["accounts"],
     summary="Login verify (Telegram OTP)",
@@ -139,9 +123,6 @@ class LoginVerifyView(generics.CreateAPIView):
         )
 
 
-# ============================
-# OTP ingest (Bot → Backend)
-# ============================
 @extend_schema(
     tags=["accounts"],
     summary="OTP ingest (Bot → Backend)",
@@ -186,7 +167,6 @@ class OtpIngestView(generics.CreateAPIView):
             ser.is_valid(raise_exception=True)
             vc = ser.save()
         except serializers.ValidationError as e:
-            # serializer 'conflict' code tashlagan holatda 409 qaytaramiz
             if getattr(e, "code", None) == "conflict" or (
                 isinstance(e.detail, dict)
                 and e.detail.get("detail") == "Active code exists"
@@ -205,9 +185,6 @@ class OtpIngestView(generics.CreateAPIView):
         )
 
 
-# ============================
-# OTP status (Bot → Backend)
-# ============================
 @extend_schema(
     tags=["accounts"],
     summary="OTP status (Bot → Backend)",
@@ -250,9 +227,7 @@ class OtpIngestView(generics.CreateAPIView):
     },
 )
 class OtpStatusView(generics.GenericAPIView):
-    """
-    Bot va frontend uchun: aktiv OTP bor-yo‘qligini ko‘rsatadi.
-    """
+
 
     permission_classes = [permissions.AllowAny]
     throttle_classes = [OTPStatusThrottle]

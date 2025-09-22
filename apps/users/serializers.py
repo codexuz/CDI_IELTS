@@ -31,7 +31,6 @@ class UserReadSerializer(serializers.ModelSerializer):
 
 
 class UserMeUpdateSerializer(serializers.ModelSerializer):
-    # Faqat o'z profilini yangilash uchun (fullname, telegram_username)
     telegram_username = serializers.CharField(
         allow_null=True, allow_blank=True, required=False, max_length=50
     )
@@ -48,7 +47,6 @@ class UserMeUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Invalid Telegram username (5-32 chars, letters/digits/_)."
             )
-        # case-insensitive unique when not null
         qs = User.objects.all()
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
@@ -58,7 +56,6 @@ class UserMeUpdateSerializer(serializers.ModelSerializer):
 
 
 class AdminUserWriteSerializer(serializers.ModelSerializer):
-    # Superadmin may update role/is_active
     phone_number = serializers.CharField(validators=[_phone_validator])
 
     class Meta:

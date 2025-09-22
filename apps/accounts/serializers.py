@@ -12,14 +12,7 @@ from apps.users.models import User
 from .models import VerificationCode
 
 
-# ============================
-# Register flow
-# ============================
 class RegisterStartSerializer(serializers.Serializer):
-    """
-    Faqat foydalanuvchini yaratish.
-    Telegram username bu bosqichda so'ralmaydi — u verify bosqichida bind qilinadi.
-    """
 
     fullname = serializers.CharField(max_length=100)
     phone_number = serializers.CharField(max_length=20)
@@ -37,12 +30,10 @@ class RegisterStartSerializer(serializers.Serializer):
 
     @transaction.atomic
     def create(self, validated_data: Dict[str, Any]) -> User:
-        # telegram_username yuborilmaydi; binding verify paytida bo'ladi
         return User.objects.create_user(**validated_data)
 
 
 class RegisterVerifySerializer(serializers.Serializer):
-    """Verify faqat user_id + code qabul qiladi."""
 
     user_id = serializers.UUIDField()
     code = serializers.CharField(max_length=6)
@@ -54,7 +45,6 @@ class RegisterVerifySerializer(serializers.Serializer):
             raise serializers.ValidationError("User not found.") from exc
 
     def _load_vc_by_code(self, code: str) -> VerificationCode | None:
-        # Eng so‘nggi, hali yaroqli (alive) va REGISTER purpose’dagi shu code
         return (
             VerificationCode.objects.alive()
             .filter(code=code, purpose=VerificationCode.Purpose.REGISTER)
@@ -68,7 +58,6 @@ class RegisterVerifySerializer(serializers.Serializer):
         if not vc or not vc.is_valid(attrs["code"]):
             raise serializers.ValidationError("Invalid or expired code.")
 
-        # Xavfsizlik: shu VC’dagi telegram_id allaqachon boshqa userga bog‘langanmi?
         if (
             vc.telegram_id
             and User.objects.filter(telegram_id=vc.telegram_id)
@@ -88,7 +77,6 @@ class RegisterVerifySerializer(serializers.Serializer):
         user: User = validated_data["user"]
         vc: VerificationCode = validated_data["vc"]
 
-        # Binding — Telegram identifikatorlari VC’dan olinadi
         if vc.telegram_id:
             user.telegram_id = vc.telegram_id
         if vc.telegram_username and not user.telegram_username:
@@ -101,9 +89,6 @@ class RegisterVerifySerializer(serializers.Serializer):
         return user
 
 
-# ============================
-# Login flow (faqat telegram_id)
-# ============================
 class LoginVerifySerializer(serializers.Serializer):
     code = serializers.CharField(max_length=6)
     telegram_id = serializers.IntegerField()
@@ -134,15 +119,7 @@ class LoginVerifySerializer(serializers.Serializer):
         vc.consume()
         return validated_data["user"]
 
-
-# ============================
-# OTP ingest (Bot → Backend)
-# ============================
 class OtpIngestSerializer(serializers.Serializer):
-    """
-    Bot OTP'ni backendga push qiladi.
-    Agar shu tg_id (+purpose) uchun aktiv kod bo‘lsa — 409 (conflict) qaytaramiz.
-    """
 
     telegram_id = serializers.IntegerField(required=False)
     telegram_username = serializers.CharField(required=False, allow_blank=True)
@@ -178,9 +155,6 @@ class OtpIngestSerializer(serializers.Serializer):
         return VerificationCode.objects.issue(**validated_data, ttl_minutes=2)
 
 
-# ============================
-# OTP status (Bot → Backend)
-# ============================
 class OtpStatusQuerySerializer(serializers.Serializer):
     telegram_id = serializers.IntegerField(required=False)
     telegram_username = serializers.CharField(required=False, allow_blank=True)
@@ -191,7 +165,7 @@ class OtpStatusQuerySerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "telegram_id yoki telegram_username talab qilinadi."
             )
-        # normalize username
+
         if attrs.get("telegram_username"):
             attrs["telegram_username"] = (
                 attrs["telegram_username"].strip().lstrip("@").lower()

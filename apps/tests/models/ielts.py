@@ -43,7 +43,6 @@ class Test(models.Model):
     def clean(self):
         if not self.pk:
             return
-        # After object exists, enforce that relations must exist
         if self.writing is None:
             raise ValidationError("Writing must be defined")
         if self.listening is None:

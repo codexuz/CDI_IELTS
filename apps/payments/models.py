@@ -38,7 +38,6 @@ class Payment(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     currency = models.CharField(max_length=3, default="UZS")
 
-    # Click identifikatorlari (prepare/complete dan keladi)
     provider_invoice_id = models.CharField(
         max_length=64, blank=True, default="", db_index=True
     )
@@ -46,7 +45,6 @@ class Payment(models.Model):
         max_length=64, blank=True, default="", db_index=True
     )
 
-    # Idempotentlik va audit
     idempotency_key = models.CharField(
         max_length=64, blank=True, default="", db_index=True
     )
@@ -55,7 +53,6 @@ class Payment(models.Model):
     error_code = models.CharField(max_length=20, blank=True, default="")
     error_note = models.CharField(max_length=255, blank=True, default="")
 
-    # Timestamps
     created_at = models.DateTimeField(default=timezone.now, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -67,7 +64,6 @@ class Payment(models.Model):
             models.Index(fields=["created_at"], name="pay_created_idx"),
         ]
         constraints = [
-            # Click TXN ID bo‘lsa – unikallik
             models.UniqueConstraint(
                 fields=["provider", "provider_txn_id"],
                 name="uniq_provider_txn",

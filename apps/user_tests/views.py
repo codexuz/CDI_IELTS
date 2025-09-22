@@ -17,11 +17,6 @@ from .serializers import (
 from .services import purchase_test
 
 
-# -------------------------------------------------------------------
-# All Tests
-# -------------------------------------------------------------------
-
-
 @extend_schema(
     tags=["UserTests"],
     summary="Barcha testlar (purchased flag bilan)",
@@ -30,11 +25,7 @@ from .services import purchase_test
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def all_tests(request):
-    """
-    Barcha mavjud testlarni qaytaradi.
-    Har bir elementda current user bo'yicha `purchased: true|false` flag bor.
-    Test modelida price bo'lmasa, 0 qaytadi (serializer get_price).
-    """
+
     purchased_qs = UserTest.objects.filter(user=request.user, test=OuterRef("pk"))
     tests = (
         Test.objects.all()
@@ -45,10 +36,6 @@ def all_tests(request):
         return Response({"message": "Hali test mavjud emas"})
     return Response(TestListItemSerializer(tests, many=True).data)
 
-
-# -------------------------------------------------------------------
-# Purchase Test
-# -------------------------------------------------------------------
 
 
 @extend_schema(
@@ -67,11 +54,7 @@ def all_tests(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def purchase_test_api(request, test_id):
-    """
-    Berilgan `test_id` bo‘yicha testni sotib oladi.
-    - Student balansi (online rejimda) tekshiriladi va yechiladi
-    - Agar avval sotib olingan bo‘lsa, mavjud UserTest qaytadi
-    """
+
     user = request.user
     test = get_object_or_404(Test, pk=test_id)
     try:
@@ -80,10 +63,6 @@ def purchase_test_api(request, test_id):
         return Response({"error": str(e)}, status=400)
     return Response(UserTestSerializer(ut).data)
 
-
-# -------------------------------------------------------------------
-# My Tests
-# -------------------------------------------------------------------
 
 
 @extend_schema(
@@ -94,10 +73,7 @@ def purchase_test_api(request, test_id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def my_tests(request):
-    """
-    Hozirgi user tomonidan sotib olingan testlar.
-    Status: not_started | in_progress | completed
-    """
+
     uts = (
         UserTest.objects.filter(user=request.user)
         .select_related("test")
@@ -105,10 +81,6 @@ def my_tests(request):
     )
     return Response(UserTestSerializer(uts, many=True).data)
 
-
-# -------------------------------------------------------------------
-# My Results (Result reviews)
-# -------------------------------------------------------------------
 
 
 @extend_schema(
@@ -119,11 +91,7 @@ def my_tests(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def my_results(request):
-    """
-    Hozirgi user testlari bo‘yicha natijalar.
-    LR avtomatik, Writing teacher orqali; overall mavjud komponentlar o‘rtacha sifatida.
-    Agar natijalar mavjud bo‘lmasa -> {"message": "Hali natijalar mavjud emas"}
-    """
+
     results = (
         TestResult.objects.filter(user_test__user=request.user)
         .select_related("user_test__test")

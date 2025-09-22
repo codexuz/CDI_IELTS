@@ -1,10 +1,10 @@
 # apps/profiles/serializers.py
 from rest_framework import serializers
+
 from apps.users.models import User
 from .models import StudentProfile, TeacherProfile, StudentTopUpLog, StudentApprovalLog
 
 
-# ---- Common minimal user serializer ----
 class UserBriefSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -19,7 +19,6 @@ class UserBriefSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-# ---- Logs (mavjud) ----
 class StudentTopUpLogSerializer(serializers.ModelSerializer):
     actor = UserBriefSerializer(read_only=True)
 
@@ -38,7 +37,6 @@ class StudentApprovalLogSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-# ---- Profiles (mavjud) ----
 class StudentProfileSerializer(serializers.ModelSerializer):
     user = UserBriefSerializer(read_only=True)
     is_offline = serializers.SerializerMethodField()
@@ -70,12 +68,7 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-# =========================
-# Dashboard serializers
-# =========================
 
-
-# --- STUDENT ---
 class AllTestItemSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     title = serializers.CharField()
@@ -107,10 +100,10 @@ class StudentDashboardResponseSerializer(serializers.Serializer):
     profile = StudentProfileSerializer()
     sections = serializers.DictField(
         child=serializers.JSONField()
-    )  # all_tests/my_tests/results
+    )
 
 
-# --- TEACHER ---
+
 class SubmissionItemSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     user_test_id = serializers.UUIDField()
@@ -127,4 +120,4 @@ class TeacherDashboardResponseSerializer(serializers.Serializer):
     profile = TeacherProfileSerializer()
     sections = serializers.DictField(
         child=serializers.JSONField()
-    )  # all_writing/my_checking/my_checked
+    )

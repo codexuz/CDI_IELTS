@@ -27,7 +27,6 @@ class StudentProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
     )
     is_approved = models.BooleanField(default=False, db_index=True)
 
-    # Denormalized; always derived from is_approved
     type = models.CharField(
         max_length=10, choices=TYPE_CHOICES, default=TYPE_ONLINE, db_index=True
     )
@@ -43,8 +42,7 @@ class StudentProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
                 check=Q(balance__gte=0),
                 name="studprof_balance_gte_0",
             ),
-            # is_approved=True  -> type='offline'
-            # is_approved=False -> type='online'
+
             models.CheckConstraint(
                 check=(
                     (Q(is_approved=True) & Q(type="offline"))
@@ -55,7 +53,6 @@ class StudentProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
         ]
 
     def save(self, *args, **kwargs):
-        # Keep 'type' in sync with 'is_approved'
         self.type = self.TYPE_OFFLINE if self.is_approved else self.TYPE_ONLINE
         super().save(*args, **kwargs)
 
@@ -77,9 +74,6 @@ class TeacherProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
 
 
 class StudentApprovalLog(UUIDPrimaryKeyMixin, TimeStampedMixin):
-    """
-    Student approve/disapprove audit log.
-    """
 
     student = models.ForeignKey(
         StudentProfile, on_delete=models.CASCADE, related_name="approval_logs"
@@ -106,9 +100,6 @@ class StudentApprovalLog(UUIDPrimaryKeyMixin, TimeStampedMixin):
 
 
 class StudentTopUpLog(UUIDPrimaryKeyMixin, TimeStampedMixin):
-    """
-    Student balance top-up audit log.
-    """
 
     student = models.ForeignKey(
         StudentProfile, on_delete=models.CASCADE, related_name="topup_logs"

@@ -17,9 +17,7 @@ from django.db.models.functions import Lower
 from django.utils import timezone
 
 
-# ---------- Reusable mixins ----------
 class UUIDPrimaryKeyMixin(models.Model):
-    """UUID primary key for all main tables."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -28,7 +26,6 @@ class UUIDPrimaryKeyMixin(models.Model):
 
 
 class TimeStampedMixin(models.Model):
-    """Created/Updated timestamps (btree index on created_at)."""
 
     created_at = models.DateTimeField(default=timezone.now, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -37,7 +34,6 @@ class TimeStampedMixin(models.Model):
         abstract = True
 
 
-# ---------- User Manager ----------
 class UserManager(BaseUserManager):
     phone_validator = RegexValidator(
         regex=r"^\+?[1-9]\d{7,14}$",
@@ -47,7 +43,6 @@ class UserManager(BaseUserManager):
     tg_username_re = re.compile(r"^[A-Za-z0-9_]{5,32}$")
 
     def _normalize_phone(self, phone: str) -> str:
-        # remove spaces, tabs, hyphens; keep leading '+'
         phone = (phone or "").strip().replace(" ", "").replace("-", "")
         self.phone_validator(phone)
         return phone
@@ -113,7 +108,6 @@ class UserManager(BaseUserManager):
         )
 
 
-# ---------- User ----------
 class User(UUIDPrimaryKeyMixin, TimeStampedMixin, AbstractBaseUser, PermissionsMixin):
     class Roles(models.TextChoices):
         SUPERADMIN = "superadmin", "Superadmin"
@@ -122,7 +116,6 @@ class User(UUIDPrimaryKeyMixin, TimeStampedMixin, AbstractBaseUser, PermissionsM
 
     fullname = models.CharField(max_length=100)
 
-    # Telegram identifiers
     telegram_id = models.BigIntegerField(unique=True, null=True, blank=True)
     telegram_username = models.CharField(
         max_length=50,
@@ -135,13 +128,11 @@ class User(UUIDPrimaryKeyMixin, TimeStampedMixin, AbstractBaseUser, PermissionsM
     phone_number = models.CharField(max_length=20, unique=True)
     role = models.CharField(max_length=20, choices=Roles.choices)
 
-    # Django flags
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
     last_activity = models.DateTimeField(null=True, blank=True, db_index=True)
 
-    # PermissionsMixin fields with safe related_names
     groups = models.ManyToManyField(Group, related_name="cdi_users", blank=True)
     user_permissions = models.ManyToManyField(
         Permission, related_name="cdi_user_perms", blank=True
@@ -162,17 +153,14 @@ class User(UUIDPrimaryKeyMixin, TimeStampedMixin, AbstractBaseUser, PermissionsM
             models.Index(fields=["created_at"], name="users_created_idx"),
         ]
         constraints = [
-            # Phone format safety at DB-level
             models.CheckConstraint(
                 check=models.Q(phone_number__regex=r"^\+?[1-9]\d{7,14}$"),
                 name="users_phone_e164_like",
             ),
-            # Non-empty fullname
             models.CheckConstraint(
                 check=~models.Q(fullname=""),
                 name="users_fullname_not_empty",
             ),
-            # Case-insensitive uniqueness for telegram_username when not null
             models.UniqueConstraint(
                 Lower("telegram_username"),
                 name="users_tg_username_ci_uniq",
@@ -184,7 +172,6 @@ class User(UUIDPrimaryKeyMixin, TimeStampedMixin, AbstractBaseUser, PermissionsM
         return f"{self.fullname} ({self.phone_number})"
 
     def save(self, *args, **kwargs):
-        # normalize telegram_username to lowercase and strip '@'
         if self.telegram_username:
             self.telegram_username = self.telegram_username.strip().lstrip("@").lower()
         return super().save(*args, **kwargs)

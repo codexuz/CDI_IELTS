@@ -30,7 +30,6 @@ def create_speaking_request(
         note=note,
     )
 
-    # Adminlarga xabar
     text = (
         "<b>Yangi Speaking so'rovi</b>\n"
         f"Student: <code>{student.user.fullname}</code>\n"
@@ -42,7 +41,6 @@ def create_speaking_request(
     try:
         notify_telegram_admin_sync(text)
     except Exception:
-        # log qilmoqchi bo‘lsangiz shu yerga yozing
         pass
 
     return sr
