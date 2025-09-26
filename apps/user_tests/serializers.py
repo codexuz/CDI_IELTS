@@ -6,23 +6,17 @@ from .models import UserTest, TestResult
 
 
 class TestListItemSerializer(serializers.ModelSerializer):
-
     purchased = serializers.BooleanField(read_only=True)
-    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Test
         fields = ["id", "title", "created_at", "price", "purchased"]
 
-    def get_price(self, obj):
-        return getattr(obj, "price", 0)
-
 
 class TestSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Test
-        fields = ["id", "title", "created_at"]
+        fields = ["id", "title", "created_at", "price"]
 
 
 class UserTestSerializer(serializers.ModelSerializer):

@@ -1,4 +1,4 @@
-#  apps/user_tests/views.py
+# apps/user_tests/views.py
 from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
@@ -37,12 +37,12 @@ def all_tests(request):
 
 @extend_schema(
     tags=["UserTests"],
-    summary="Test sotib olish",
+    summary="Test sotib olish (balansdan yechish)",
     parameters=[
         OpenApiParameter(
             name="test_id",
-            type=OpenApiTypes.UUID,
-            location="path",  # <- shu
+            type=OpenApiTypes.INT,  # Test PK int
+            location=OpenApiParameter.PATH,
             description="Sotib olinadigan test ID-si",
             required=True,
         )
@@ -51,14 +51,18 @@ def all_tests(request):
 )
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def purchase_test_api(request, test_id):
-
+def purchase_test_api(request, test_id: int):
     user = request.user
     test = get_object_or_404(Test, pk=test_id)
+
+    if UserTest.objects.filter(user=user, test=test).exists():
+        return Response({"detail": "Already purchased"}, status=400)
+
     try:
-        ut = purchase_test(user=user, test=test)  # -> UserTest
+        ut = purchase_test(user=user, test=test)  # balansdan yechish + create
     except Exception as e:
         return Response({"error": str(e)}, status=400)
+
     return Response(UserTestSerializer(ut).data, status=status.HTTP_201_CREATED)
 
 
@@ -70,7 +74,6 @@ def purchase_test_api(request, test_id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def my_tests(request):
-
     uts = (
         UserTest.objects.filter(user=request.user)
         .select_related("test")

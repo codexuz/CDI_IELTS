@@ -1,14 +1,15 @@
 # apps/user_tests/models.py
 import uuid
 from decimal import Decimal
+
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.utils import timezone
 
-from apps.users.models import User
 from apps.tests.models.ielts import Test
-from apps.tests.models.question import Question
 from apps.tests.models.ielts import Test as RealTest
+from apps.tests.models.question import Question
+from apps.users.models import User
 
 
 class UserTest(models.Model):
@@ -117,8 +118,8 @@ class TestResult(models.Model):
 
     class Meta:
         db_table = "test_results"
-        verbose_name = "Result review"  # <-- label
-        verbose_name_plural = "Result reviews"  # <-- label
+        verbose_name = "Result review"
+        verbose_name_plural = "Result reviews"
         indexes = [
             models.Index(fields=["overall_score"], name="tr_overall_idx"),
             models.Index(fields=["created_at"], name="tr_created_idx"),
