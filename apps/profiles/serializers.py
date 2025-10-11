@@ -55,7 +55,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-    def get_is_offline(self, obj: StudentProfile) -> bool:
+    def get_is_offline(self, obj: StudentProfile) -> bool:  # noqa
         return obj.type == StudentProfile.TYPE_OFFLINE
 
 

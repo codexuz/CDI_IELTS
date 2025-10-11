@@ -56,7 +56,7 @@ class StudentProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f"StudentProfile<{self.user_id}> {self.type} | bal={self.balance}"
+        return f"StudentProfile<{self.user_id}> {self.type} | bal={self.balance}"  # type: ignore[attr-defined]
 
 
 class TeacherProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
@@ -69,7 +69,7 @@ class TeacherProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
         indexes = [models.Index(fields=["created_at"], name="teachprof_created_idx")]
 
     def __str__(self) -> str:
-        return f"TeacherProfile<{self.user_id}>"
+        return f"TeacherProfile<{self.user_id}>"    # type: ignore[attr-defined]
 
 
 class StudentApprovalLog(UUIDPrimaryKeyMixin, TimeStampedMixin):
@@ -95,7 +95,7 @@ class StudentApprovalLog(UUIDPrimaryKeyMixin, TimeStampedMixin):
 
     def __str__(self) -> str:
         who = self.actor.fullname if self.actor else "system"
-        return f"ApprovalLog<{self.student_id}> approved={self.approved} by {who}"
+        return f"ApprovalLog<{self.student_id}> approved={self.approved} by {who}"  # type: ignore[attr-defined]
 
 
 class StudentTopUpLog(UUIDPrimaryKeyMixin, TimeStampedMixin):
@@ -123,4 +123,4 @@ class StudentTopUpLog(UUIDPrimaryKeyMixin, TimeStampedMixin):
 
     def __str__(self) -> str:
         who = self.actor.fullname if self.actor else "system"
-        return f"TopUpLog<{self.student_id}> +{self.amount} by {who}, new={self.new_balance}"
+        return f"TopUpLog<{self.student_id}> +{self.amount} by {who}, new={self.new_balance}"  # type: ignore[attr-defined]
