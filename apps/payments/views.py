@@ -49,7 +49,6 @@ from .services import (
 )
 
 
-
 @extend_schema(
     tags=["Payments"],
     summary="Top-up sessiya yaratish (Click redirect URL qaytaradi)",
@@ -112,7 +111,6 @@ def create_topup(request):
     request=OpenApiTypes.OBJECT,
     responses={200: OpenApiTypes.OBJECT},
 )
-
 @csrf_exempt
 @api_view(["POST"])
 def click_webhook(request):
@@ -207,7 +205,6 @@ def click_webhook(request):
             return Response({"status": "canceled", "payment_id": str(payment.id)})
 
         return Response({"error": "Unknown action"}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 @extend_schema(
