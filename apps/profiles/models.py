@@ -69,7 +69,7 @@ class TeacherProfile(UUIDPrimaryKeyMixin, TimeStampedMixin):
         indexes = [models.Index(fields=["created_at"], name="teachprof_created_idx")]
 
     def __str__(self) -> str:
-        return f"TeacherProfile<{self.user_id}>"    # type: ignore[attr-defined]
+        return f"TeacherProfile<{self.user_id}>"  # type: ignore[attr-defined]
 
 
 class StudentApprovalLog(UUIDPrimaryKeyMixin, TimeStampedMixin):

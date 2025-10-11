@@ -46,7 +46,7 @@ def _sub_to_item(s: TeacherSubmission) -> Dict[str, Any]:
     ut = s.user_test
     return {
         "id": s.id,
-        "user_test_id": s.user_test_id, # type: ignore[attr-defined]
+        "user_test_id": s.user_test_id,  # type: ignore[attr-defined]
         "student_fullname": ut.user.fullname,
         "test_title": ut.test.title,
         "task": s.task,
@@ -130,7 +130,6 @@ class StudentApprovalLogListView(generics.ListAPIView):
         )
 
 
-
 @extend_schema(
     tags=["Profiles"],
     summary="Student dashboard: profile + all_tests + my_tests + results",
@@ -181,7 +180,7 @@ def student_dashboard(request):
 
     all_tests: List[Dict[str, Any]] = [
         {
-            "id": t.id,   # type: ignore[attr-defined]
+            "id": t.id,  # type: ignore[attr-defined]
             "title": t.title,
             "price": getattr(t, "price", 0),
             "purchased": bool(getattr(t, "purchased", False)),

@@ -70,7 +70,7 @@ def grade_submission(
         .select_related("user_test")
         .get(id=submission_id)
     )
-    if sub.teacher_id and sub.teacher_id != teacher.id:   # type: ignore[attr-defined]
+    if sub.teacher_id and sub.teacher_id != teacher.id:  # type: ignore[attr-defined]
         raise ValidationError("This submission is assigned to another teacher.")
     if sub.status != TeacherSubmission.Status.IN_CHECKING:
         raise ValidationError("Submission must be in 'in_checking' state to grade.")

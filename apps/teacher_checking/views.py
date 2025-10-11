@@ -94,18 +94,16 @@ class MyCheckedList(generics.ListAPIView):
         "**Frontend tomonidan to‘g‘ridan-to‘g‘ri chaqirilmaydi.**"
     ),
 )
-
-
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated, IsTeacherOrSuperAdmin])
 def claim_view(request):
     ser = ClaimSerializer(data=request.data)
     ser.is_valid(raise_exception=True)
     sub = claim_submission(
-        submission_id=ser.validated_data["submission_id"],
-        teacher=request.user
+        submission_id=ser.validated_data["submission_id"], teacher=request.user
     )
     return Response(TeacherSubmissionSerializer(sub).data)
+
 
 @extend_schema(tags=["Teacher Checking"], summary="Grade submission and finish")
 @api_view(["POST"])

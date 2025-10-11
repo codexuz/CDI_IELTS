@@ -40,7 +40,7 @@ READING_PREFETCH = Prefetch(
         OpenApiParameter(
             name="ordering",
             type=OpenApiTypes.STR,
-            location=OpenApiParameter.QUERY,
+            location="query",
             description="Masalan: `-created_at` yoki `title`",
         ),
     ],
@@ -95,7 +95,12 @@ class TestViewSet(
 @extend_schema(
     tags=["Tests"],
     summary="Question set ro'yxati (summary)",
-    description="Har bir set uchun `questions_count` qaytaradi. Bo‘sh bo‘lsa ham `200 OK` va `[]`.",
+    description=(
+        "⚠️ FRONTEND uchun emas"
+        "Har bir set uchun `questions_count` qaytaradi. "
+        "Bo‘sh bo‘lsa ham `200 OK` va `[]`.\n\n"
+        " — bu ichki (backend / admin) API."
+    ),
     responses={
         200: OpenApiResponse(
             response=QuestionSetSummarySerializer(many=True), description="OK"
