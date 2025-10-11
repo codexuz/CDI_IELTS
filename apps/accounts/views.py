@@ -138,7 +138,7 @@ class LoginVerifyView(generics.CreateAPIView):
         OpenApiParameter(
             name="X-Bot-Token",
             type=str,
-            location=OpenApiParameter.HEADER,
+            location="header",
             required=True,
             description="Shared secret (settings.TELEGRAM_BOT_INGEST_TOKEN)",
         )
@@ -192,38 +192,38 @@ class OtpIngestView(generics.CreateAPIView):
     tags=["accounts"],
     summary="OTP status (Bot → Backend)",
     description=(
-            "⚠️ **FRONTEND uchun emas!**\n\n"
-            "Ushbu endpoint faqat **Telegram bot** tomonidan OTP holatini "
-            "(faol/eskirgan) tekshirish uchun ishlatiladi.\n\n"
-            "So‘rovda `telegram_id` yoki `telegram_username`, hamda `purpose` (`register` | `login`) "
-            "bo‘lishi kerak.\n\n"
-            "**Xavfsizlik**: `X-Bot-Token` header orqali yuborilgan **shared-secret** bilan "
-            "autentifikatsiya qilinadi."
+        "⚠️ **FRONTEND uchun emas!**\n\n"
+        "Ushbu endpoint faqat **Telegram bot** tomonidan OTP holatini "
+        "(faol/eskirgan) tekshirish uchun ishlatiladi.\n\n"
+        "So‘rovda `telegram_id` yoki `telegram_username`, hamda `purpose` (`register` | `login`) "
+        "bo‘lishi kerak.\n\n"
+        "**Xavfsizlik**: `X-Bot-Token` header orqali yuborilgan **shared-secret** bilan "
+        "autentifikatsiya qilinadi."
     ),
     parameters=[
         OpenApiParameter(
             name="X-Bot-Token",
             type=str,
-            location=OpenApiParameter.HEADER,
+            location="header",
             required=True,
             description="Shared secret (settings.TELEGRAM_BOT_INGEST_TOKEN)",
         ),
         OpenApiParameter(
             name="telegram_id",
             type=int,
-            location=OpenApiParameter.QUERY,
+            location="query",
             required=False,
         ),
         OpenApiParameter(
             name="telegram_username",
             type=str,
-            location=OpenApiParameter.QUERY,
+            location="query",
             required=False,
         ),
         OpenApiParameter(
             name="purpose",
             type=str,
-            location=OpenApiParameter.QUERY,
+            location="query",
             required=True,
             description="register | login",
         ),
